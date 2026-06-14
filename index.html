@@ -7,47 +7,49 @@
 <title>豪隍點心工房 · 外賣落單</title>
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;height:100%;overflow:hidden;
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;
     font-family:-apple-system,"PingFang TC","Heiti TC","Microsoft JhengHei",sans-serif;
-    background:#f5f5f5;color:#222}
+    background:#f5f5f5;color:#222;
+    padding:52px 0 78px 84px;        /* 上:header 下:cartbar 左:分類欄 */
+  }
   .topbar{position:fixed;top:0;left:0;right:0;height:52px;z-index:30;
     background:#b71c1c;color:#fff;display:flex;align-items:center;justify-content:center;
     gap:8px;font-size:18px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.2)}
   .topbar small{font-weight:400;font-size:13px;opacity:.85}
-  .layout{position:fixed;top:52px;bottom:64px;left:0;right:0;display:flex}
-  /* 左側分類欄 */
-  .cats{width:84px;flex:none;background:#ededed;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  /* 左側分類欄：固定貼左 */
+  .cats{position:fixed;top:52px;left:0;width:84px;bottom:64px;z-index:20;
+    background:#ededed;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .cat{padding:14px 6px;text-align:center;font-size:13px;line-height:1.3;color:#555;
     border-left:3px solid transparent;cursor:pointer}
-  .cat.active{background:#fff;color:#b71c1c;font-weight:700;border-left-color:#b71c1c}
-  /* 右側點心列表 */
-  .items{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:20px}
-  .sec-h{position:sticky;top:0;background:#f5f5f5;padding:10px 12px 6px;
+  .cat.active{background:#f5f5f5;color:#b71c1c;font-weight:700;border-left-color:#b71c1c}
+  /* 右側點心列表：跟著整頁自然捲動 */
+  .sec-h{position:sticky;top:52px;background:#f5f5f5;padding:10px 12px 6px;
     font-size:14px;font-weight:700;color:#b71c1c;z-index:5}
   .card{display:flex;align-items:center;gap:10px;background:#fff;margin:0 10px 8px;
     padding:10px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
   .card img{width:74px;height:74px;flex:none;object-fit:cover;border-radius:10px;background:#eee}
   .card .nm{flex:1;font-size:15px;font-weight:600;line-height:1.35}
-  /* 數量加減 */
   .stp{display:flex;align-items:center;gap:8px;flex:none}
-  .stp button{width:30px;height:30px;border-radius:50%;border:1.5px solid #b71c1c;
+  .stp button{width:32px;height:32px;border-radius:50%;border:1.5px solid #b71c1c;
     background:#fff;color:#b71c1c;font-size:20px;line-height:1;font-weight:700;cursor:pointer;
     display:flex;align-items:center;justify-content:center;padding:0}
-  .stp button.minus{opacity:0;pointer-events:none;transition:opacity .15s}
+  .stp button.minus{visibility:hidden}
   .stp .qty{min-width:18px;text-align:center;font-size:16px;font-weight:700}
   .stp .qty.zero{display:none}
   .card.on{outline:2px solid #ffcdd2}
   /* 底部購物列 */
   .cartbar{position:fixed;bottom:0;left:0;right:0;height:64px;z-index:30;
     background:#fff;box-shadow:0 -2px 8px rgba(0,0,0,.12);
-    display:flex;align-items:center;padding:0 14px;gap:12px}
+    display:flex;align-items:center;padding:0 14px;gap:12px;
+    padding-bottom:env(safe-area-inset-bottom)}
   .cartinfo{font-size:15px;color:#333;flex:1}
   .cartinfo b{color:#b71c1c;font-size:20px;margin:0 2px}
   .sendbtn{height:46px;padding:0 22px;border:none;border-radius:23px;font-size:16px;
     font-weight:700;color:#fff;background:#25D366;cursor:pointer;display:flex;
     align-items:center;gap:7px;white-space:nowrap}
   .sendbtn:disabled{background:#bdbdbd}
-  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);z-index:40;
+  .toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:40;
     background:rgba(0,0,0,.82);color:#fff;padding:10px 16px;border-radius:20px;font-size:14px;
     opacity:0;transition:opacity .25s;pointer-events:none}
   .toast.show{opacity:1}
@@ -55,10 +57,8 @@
 </head>
 <body>
   <div class="topbar">🥟 豪隍點心工房 <small>外賣落單</small></div>
-  <div class="layout">
-    <nav class="cats" id="cats"></nav>
-    <section class="items" id="items"></section>
-  </div>
+  <nav class="cats" id="cats"></nav>
+  <main class="items" id="items"></main>
   <div class="cartbar">
     <div class="cartinfo">🛒 已選 <b id="count">0</b> 件</div>
     <button class="sendbtn" id="sendbtn" disabled>
@@ -71,24 +71,30 @@
 <script>
 const WA="85295747436";
 const DATA={"cats": ["即蒸點心", "腸粉", "香口煎炸小食", "包類", "蒸飯", "米線", "湯品", "健康蔬菜", "甜品"], "menu": [{"name": "娥姐上素餃", "cat": "即蒸點心", "img": "img/item01.jpg"}, {"name": "山竹牛肉球", "cat": "即蒸點心", "img": "img/item02.jpg"}, {"name": "五香金錢肚", "cat": "即蒸點心", "img": "img/item03.jpg"}, {"name": "五香鹹水角", "cat": "即蒸點心", "img": "img/item04.jpg"}, {"name": "杞子濃湯鮮竹卷", "cat": "即蒸點心", "img": "img/item05.jpg"}, {"name": "流沙奶皇包", "cat": "即蒸點心", "img": "img/item06.jpg"}, {"name": "荷葉珍珠雞", "cat": "即蒸點心", "img": "img/item07.jpg"}, {"name": "豉汁蒸排骨", "cat": "即蒸點心", "img": "img/item08.jpg"}, {"name": "豉汁蒸鳳爪", "cat": "即蒸點心", "img": "img/item09.jpg"}, {"name": "蜜汁叉燒包", "cat": "即蒸點心", "img": "img/item10.jpg"}, {"name": "潮州蒸粉果", "cat": "即蒸點心", "img": "img/item11.jpg"}, {"name": "蝦仁燒賣王", "cat": "即蒸點心", "img": "img/item12.jpg"}, {"name": "蝦餃拼粉果", "cat": "即蒸點心", "img": "img/item13.jpg"}, {"name": "養顏紅棗糕", "cat": "即蒸點心", "img": "img/item14.jpg"}, {"name": "鮑魚冬菇棉花雞", "cat": "即蒸點心", "img": "img/item15.jpg"}, {"name": "龍仔馬拉糕", "cat": "即蒸點心", "img": "img/item16.jpg"}, {"name": "鮮蝦菜苗餃", "cat": "即蒸點心", "img": "img/item17.jpg"}, {"name": "點心拼盤", "cat": "即蒸點心", "img": "img/item18.jpg"}, {"name": "蠔皇蝦餃皇", "cat": "即蒸點心", "img": "img/item19.jpg"}, {"name": "香茜牛肉腸", "cat": "腸粉", "img": "img/item20.jpg"}, {"name": "爽口滑蝦腸", "cat": "腸粉", "img": "img/item21.jpg"}, {"name": "蜜汁叉燒腸", "cat": "腸粉", "img": "img/item22.jpg"}, {"name": "生煎蘿蔔糕", "cat": "香口煎炸小食", "img": "img/item23.jpg"}, {"name": "孜然炸雞翼", "cat": "香口煎炸小食", "img": "img/item24.jpg"}, {"name": "沙律雜果鮮蝦炸雲吞", "cat": "香口煎炸小食", "img": "img/item25.jpg"}, {"name": "蒜蓉芝士鮮蝦長春卷", "cat": "香口煎炸小食", "img": "img/item26.jpg"}, {"name": "蒜蓉炸雞翼", "cat": "香口煎炸小食", "img": "img/item27.jpg"}, {"name": "蓮藕煎鯪魚餅", "cat": "香口煎炸小食", "img": "img/item28.jpg"}, {"name": "鮮蝦腐皮卷", "cat": "香口煎炸小食", "img": "img/item29.jpg"}, {"name": "生煎菜肉包", "cat": "包類", "img": "img/item30.jpg"}, {"name": "墨西哥叉燒包", "cat": "包類", "img": "img/item31.jpg"}, {"name": "時令鮮姑章魚雞粒飯", "cat": "蒸飯", "img": "img/item32.jpg"}, {"name": "梅菜肉餅飯", "cat": "蒸飯", "img": "img/item33.jpg"}, {"name": "溫泉蛋牛肉飯", "cat": "蒸飯", "img": "img/item34.jpg"}, {"name": "鳳爪排骨飯", "cat": "蒸飯", "img": "img/item35.jpg"}, {"name": "金湯酸菜魚片湯米線", "cat": "米線", "img": "img/item36.jpg"}, {"name": "金菇肥牛湯米線", "cat": "米線", "img": "img/item37.jpg"}, {"name": "厚冬菇湯米線", "cat": "米線", "img": "img/item38.jpg"}, {"name": "燒排骨湯米線", "cat": "米線", "img": "img/item39.jpg"}, {"name": "雞中翼湯米線", "cat": "米線", "img": "img/item40.jpg"}, {"name": "足料原盅燉湯", "cat": "湯品", "img": "img/item41.jpg"}, {"name": "手拍青瓜", "cat": "健康蔬菜", "img": "img/item42.jpg"}, {"name": "豉油新鮮時菜", "cat": "健康蔬菜", "img": "img/item43.jpg"}, {"name": "芒果布甸", "cat": "甜品", "img": "img/item44.jpg"}, {"name": "懷舊七彩啫喱", "cat": "甜品", "img": "img/item45.jpg"}]};
-const cart={};                       // name -> qty
+const cart={};
 const catsEl=document.getElementById('cats');
 const itemsEl=document.getElementById('items');
 const countEl=document.getElementById('count');
 const sendBtn=document.getElementById('sendbtn');
 const toastEl=document.getElementById('toast');
+const HEADER=52;                       // 固定 header 高度
+let lockSpy=false;                      // 點分類捲動時暫停 scroll-spy
 
-// 建左側分類
+// 左側分類
 DATA.cats.forEach((c,i)=>{
   const d=document.createElement('div');
   d.className='cat'+(i===0?' active':'');
-  d.textContent=c; d.dataset.cat=c;
-  d.onclick=()=>{const s=document.getElementById('sec-'+i);
-    itemsEl.scrollTo({top:s.offsetTop-4,behavior:'smooth'});};
+  d.textContent=c;
+  d.onclick=()=>{
+    const s=document.getElementById('sec-'+i);
+    const y=s.getBoundingClientRect().top + window.pageYOffset - HEADER;
+    lockSpy=true; setActive(i);          // 鎖定高亮，直到用戶自己滑動才交還
+    window.scrollTo({top:y, behavior:'smooth'});
+  };
   catsEl.appendChild(d);
 });
 
-// 建右側點心
+// 右側點心
 DATA.cats.forEach((c,i)=>{
   const h=document.createElement('div');
   h.className='sec-h'; h.id='sec-'+i; h.textContent=c;
@@ -110,8 +116,7 @@ DATA.cats.forEach((c,i)=>{
       const n=cart[m.name]||0;
       qty.textContent=n;
       qty.classList.toggle('zero',n===0);
-      minus.style.opacity=n>0?'1':'0';
-      minus.style.pointerEvents=n>0?'auto':'none';
+      minus.style.visibility=n>0?'visible':'hidden';
       card.classList.toggle('on',n>0);
       updateCart();
     }
@@ -121,13 +126,24 @@ DATA.cats.forEach((c,i)=>{
   });
 });
 
-// 捲動時高亮對應分類
+// 捲動高亮分類（整頁捲動）
 const secs=DATA.cats.map((c,i)=>document.getElementById('sec-'+i));
-itemsEl.addEventListener('scroll',()=>{
+function setActive(idx){
+  [...catsEl.children].forEach((el,i)=>el.classList.toggle('active',i===idx));
+}
+function onScroll(){
+  if(lockSpy) return;
+  // 捲到底：高亮最後一個分類（頁尾短分類靠這個）
+  if(window.innerHeight + window.pageYOffset >= document.body.scrollHeight - 2){
+    setActive(secs.length-1); return;
+  }
   let active=0;
-  secs.forEach((s,i)=>{ if(s.offsetTop-12<=itemsEl.scrollTop) active=i; });
-  [...catsEl.children].forEach((el,i)=>el.classList.toggle('active',i===active));
-});
+  secs.forEach((s,i)=>{ if(s.getBoundingClientRect().top - HEADER - 4 <= 0) active=i; });
+  setActive(active);
+}
+window.addEventListener('scroll', onScroll, {passive:true});
+// 用戶一旦自己滑動，就把高亮控制權交回 scroll-spy
+['wheel','touchmove'].forEach(ev=>window.addEventListener(ev,()=>{lockSpy=false;},{passive:true}));
 
 function updateCart(){
   let total=0; for(const k in cart) total+=cart[k];
