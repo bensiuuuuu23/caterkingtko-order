@@ -4,175 +4,245 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#b71c1c">
-<title>豪隍點心工房 · 外賣落單</title>
+<title>豪隍點心工房（將軍澳）· 外賣落單</title>
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html{-webkit-text-size-adjust:100%}
   body{margin:0;
     font-family:-apple-system,"PingFang TC","Heiti TC","Microsoft JhengHei",sans-serif;
-    background:#f5f5f5;color:#222;
-    padding:52px 0 78px 84px;        /* 上:header 下:cartbar 左:分類欄 */
-  }
-  .topbar{position:fixed;top:0;left:0;right:0;height:52px;z-index:30;
+    background:#f5f5f5;color:#222;font-size:17px;
+    padding:60px 0 84px 96px;}
+  .topbar{position:fixed;top:0;left:0;right:0;height:60px;z-index:30;
     background:#b71c1c;color:#fff;display:flex;align-items:center;justify-content:center;
-    gap:8px;font-size:18px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.2)}
-  .topbar small{font-weight:400;font-size:13px;opacity:.85}
-  /* 左側分類欄：固定貼左 */
-  .cats{position:fixed;top:52px;left:0;width:84px;bottom:64px;z-index:20;
+    gap:8px;font-size:21px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.2);text-align:center}
+  .teabar{position:fixed;top:60px;left:0;right:0;z-index:25;background:#fff3cd;color:#8a6d00;
+    font-size:14px;text-align:center;padding:6px 8px;display:none;border-bottom:1px solid #f0e0a0}
+  .teabar.show{display:block}
+  body.tea{padding-top:92px}
+  body.tea .cats,body.tea .sec-h{top:92px}
+  /* 左側分類欄 */
+  .cats{position:fixed;top:60px;left:0;width:96px;bottom:72px;z-index:20;
     background:#ededed;overflow-y:auto;-webkit-overflow-scrolling:touch}
-  .cat{padding:14px 6px;text-align:center;font-size:13px;line-height:1.3;color:#555;
+  .cat{padding:15px 6px;text-align:center;font-size:15px;line-height:1.3;color:#555;
     border-left:3px solid transparent;cursor:pointer}
   .cat.active{background:#f5f5f5;color:#b71c1c;font-weight:700;border-left-color:#b71c1c}
-  /* 右側點心列表：跟著整頁自然捲動 */
-  .sec-h{position:sticky;top:52px;background:#f5f5f5;padding:10px 12px 6px;
-    font-size:14px;font-weight:700;color:#b71c1c;z-index:5}
-  .card{display:flex;align-items:center;gap:10px;background:#fff;margin:0 10px 8px;
-    padding:10px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-  .card img{width:74px;height:74px;flex:none;object-fit:cover;border-radius:10px;background:#eee}
-  .card .nm{flex:1;font-size:15px;font-weight:600;line-height:1.35}
-  .stp{display:flex;align-items:center;gap:8px;flex:none}
-  .stp button{width:32px;height:32px;border-radius:50%;border:1.5px solid #b71c1c;
-    background:#fff;color:#b71c1c;font-size:20px;line-height:1;font-weight:700;cursor:pointer;
+  /* 右側列表 */
+  .sec-h{position:sticky;top:60px;background:#f5f5f5;padding:12px 12px 6px;
+    font-size:17px;font-weight:700;color:#b71c1c;z-index:5}
+  .card{display:flex;align-items:center;gap:11px;background:#fff;margin:0 10px 9px;
+    padding:11px;border-radius:13px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card img{width:82px;height:82px;flex:none;object-fit:cover;border-radius:11px;background:#eee}
+  .card .info{flex:1;min-width:0}
+  .card .nm{font-size:17px;font-weight:600;line-height:1.35}
+  .card .pr{font-size:15px;color:#b71c1c;font-weight:700;margin-top:3px}
+  .card .pr .was{color:#999;font-weight:400;text-decoration:line-through;margin-left:6px;font-size:13px}
+  .stp{display:flex;align-items:center;gap:9px;flex:none}
+  .stp button{width:34px;height:34px;border-radius:50%;border:1.5px solid #b71c1c;
+    background:#fff;color:#b71c1c;font-size:22px;line-height:1;font-weight:700;cursor:pointer;
     display:flex;align-items:center;justify-content:center;padding:0}
   .stp button.minus{visibility:hidden}
-  .stp .qty{min-width:18px;text-align:center;font-size:16px;font-weight:700}
+  .stp .qty{min-width:20px;text-align:center;font-size:18px;font-weight:700}
   .stp .qty.zero{display:none}
   .card.on{outline:2px solid #ffcdd2}
   /* 底部購物列 */
-  .cartbar{position:fixed;bottom:0;left:0;right:0;height:64px;z-index:30;
+  .cartbar{position:fixed;bottom:0;left:0;right:0;height:72px;z-index:30;
     background:#fff;box-shadow:0 -2px 8px rgba(0,0,0,.12);
     display:flex;align-items:center;padding:0 14px;gap:12px;
     padding-bottom:env(safe-area-inset-bottom)}
-  .cartinfo{font-size:15px;color:#333;flex:1}
-  .cartinfo b{color:#b71c1c;font-size:20px;margin:0 2px}
-  .sendbtn{height:46px;padding:0 22px;border:none;border-radius:23px;font-size:16px;
+  .cartinfo{font-size:16px;color:#333;flex:1;line-height:1.3}
+  .cartinfo b{color:#b71c1c;font-size:22px;margin:0 2px}
+  .cartinfo .sub{display:block;font-size:13px;color:#888}
+  .sendbtn{height:50px;padding:0 24px;border:none;border-radius:25px;font-size:18px;
     font-weight:700;color:#fff;background:#25D366;cursor:pointer;display:flex;
-    align-items:center;gap:7px;white-space:nowrap}
+    align-items:center;gap:8px;white-space:nowrap}
   .sendbtn:disabled{background:#bdbdbd}
-  .toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:40;
-    background:rgba(0,0,0,.82);color:#fff;padding:10px 16px;border-radius:20px;font-size:14px;
+  .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:60;
+    background:rgba(0,0,0,.82);color:#fff;padding:11px 18px;border-radius:20px;font-size:15px;
     opacity:0;transition:opacity .25s;pointer-events:none}
   .toast.show{opacity:1}
+  /* 預覽 modal */
+  .mask{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);display:none;
+    align-items:flex-end;justify-content:center}
+  .mask.show{display:flex}
+  .sheet{background:#fff;width:100%;max-width:560px;max-height:88vh;border-radius:18px 18px 0 0;
+    display:flex;flex-direction:column;overflow:hidden}
+  .sheet h2{margin:0;padding:16px;font-size:19px;text-align:center;color:#b71c1c;
+    border-bottom:1px solid #eee}
+  .sheet .body{overflow-y:auto;padding:12px 16px;-webkit-overflow-scrolling:touch}
+  .pvcat{font-size:14px;font-weight:700;color:#b71c1c;margin:10px 0 4px}
+  .pvrow{display:flex;justify-content:space-between;font-size:16px;padding:3px 0;gap:10px}
+  .pvrow .q{color:#666;flex:none}
+  .pvrow .lp{flex:none;font-weight:600}
+  .pvtotal{display:flex;justify-content:space-between;font-size:19px;font-weight:700;
+    margin-top:12px;padding-top:10px;border-top:2px solid #eee}
+  .notes{background:#fafafa;border-radius:10px;padding:12px;margin-top:14px;font-size:13.5px;
+    color:#555;line-height:1.6}
+  .notes b{color:#b71c1c}
+  .sheet .foot{display:flex;gap:10px;padding:12px 16px;border-top:1px solid #eee}
+  .sheet .foot button{flex:1;height:50px;border-radius:25px;font-size:17px;font-weight:700;cursor:pointer}
+  .btn-back{background:#fff;border:1.5px solid #bbb;color:#555}
+  .btn-go{background:#25D366;border:none;color:#fff}
 </style>
 </head>
 <body>
-  <div class="topbar">🥟 豪隍點心工房 <small>外賣落單</small></div>
+  <div class="topbar">🥟 豪隍點心工房（將軍澳）</div>
+  <div class="teabar" id="teabar">🍵 現為茶市時段，部分點心為特價</div>
   <nav class="cats" id="cats"></nav>
   <main class="items" id="items"></main>
   <div class="cartbar">
-    <div class="cartinfo">🛒 已選 <b id="count">0</b> 件</div>
-    <button class="sendbtn" id="sendbtn" disabled>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2zm5.8 14.2c-.2.7-1.4 1.3-2 1.4-.5.1-1.2.1-1.9-.1-.4-.1-1-.3-1.7-.6-3-1.3-4.9-4.3-5.1-4.5-.1-.2-1.2-1.5-1.2-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.4.5-.3.3c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.7-.1l.8-1c.2-.2.4-.2.6-.1l1.9.9c.3.1.5.2.5.4.1.2.1.9-.1 1.6z"/></svg>
-      送出訂單
-    </button>
+    <div class="cartinfo">🛒 已選 <b id="count">0</b> 件<span class="sub" id="subtotal">合計 $0</span></div>
+    <button class="sendbtn" id="sendbtn" disabled>送出訂單</button>
   </div>
   <div class="toast" id="toast"></div>
 
+  <!-- 預覽 modal -->
+  <div class="mask" id="mask">
+    <div class="sheet">
+      <h2>訂單預覽</h2>
+      <div class="body" id="pvbody"></div>
+      <div class="foot">
+        <button class="btn-back" id="btnBack">返回修改</button>
+        <button class="btn-go" id="btnGo">確認送出</button>
+      </div>
+    </div>
+  </div>
+
 <script>
-const WA="85295747436";
-const DATA={"cats": ["即蒸點心", "腸粉", "香口煎炸小食", "包類", "蒸飯", "米線", "湯品", "健康蔬菜", "甜品"], "menu": [{"name": "娥姐上素餃", "cat": "即蒸點心", "img": "img/item01.jpg"}, {"name": "山竹牛肉球", "cat": "即蒸點心", "img": "img/item02.jpg"}, {"name": "五香金錢肚", "cat": "即蒸點心", "img": "img/item03.jpg"}, {"name": "五香鹹水角", "cat": "即蒸點心", "img": "img/item04.jpg"}, {"name": "杞子濃湯鮮竹卷", "cat": "即蒸點心", "img": "img/item05.jpg"}, {"name": "流沙奶皇包", "cat": "即蒸點心", "img": "img/item06.jpg"}, {"name": "荷葉珍珠雞", "cat": "即蒸點心", "img": "img/item07.jpg"}, {"name": "豉汁蒸排骨", "cat": "即蒸點心", "img": "img/item08.jpg"}, {"name": "豉汁蒸鳳爪", "cat": "即蒸點心", "img": "img/item09.jpg"}, {"name": "蜜汁叉燒包", "cat": "即蒸點心", "img": "img/item10.jpg"}, {"name": "潮州蒸粉果", "cat": "即蒸點心", "img": "img/item11.jpg"}, {"name": "蝦仁燒賣王", "cat": "即蒸點心", "img": "img/item12.jpg"}, {"name": "蝦餃拼粉果", "cat": "即蒸點心", "img": "img/item13.jpg"}, {"name": "養顏紅棗糕", "cat": "即蒸點心", "img": "img/item14.jpg"}, {"name": "鮑魚冬菇棉花雞", "cat": "即蒸點心", "img": "img/item15.jpg"}, {"name": "龍仔馬拉糕", "cat": "即蒸點心", "img": "img/item16.jpg"}, {"name": "鮮蝦菜苗餃", "cat": "即蒸點心", "img": "img/item17.jpg"}, {"name": "點心拼盤", "cat": "即蒸點心", "img": "img/item18.jpg"}, {"name": "蠔皇蝦餃皇", "cat": "即蒸點心", "img": "img/item19.jpg"}, {"name": "香茜牛肉腸", "cat": "腸粉", "img": "img/item20.jpg"}, {"name": "爽口滑蝦腸", "cat": "腸粉", "img": "img/item21.jpg"}, {"name": "蜜汁叉燒腸", "cat": "腸粉", "img": "img/item22.jpg"}, {"name": "生煎蘿蔔糕", "cat": "香口煎炸小食", "img": "img/item23.jpg"}, {"name": "孜然炸雞翼", "cat": "香口煎炸小食", "img": "img/item24.jpg"}, {"name": "沙律雜果鮮蝦炸雲吞", "cat": "香口煎炸小食", "img": "img/item25.jpg"}, {"name": "蒜蓉芝士鮮蝦長春卷", "cat": "香口煎炸小食", "img": "img/item26.jpg"}, {"name": "蒜蓉炸雞翼", "cat": "香口煎炸小食", "img": "img/item27.jpg"}, {"name": "蓮藕煎鯪魚餅", "cat": "香口煎炸小食", "img": "img/item28.jpg"}, {"name": "鮮蝦腐皮卷", "cat": "香口煎炸小食", "img": "img/item29.jpg"}, {"name": "生煎菜肉包", "cat": "包類", "img": "img/item30.jpg"}, {"name": "墨西哥叉燒包", "cat": "包類", "img": "img/item31.jpg"}, {"name": "時令鮮姑章魚雞粒飯", "cat": "蒸飯", "img": "img/item32.jpg"}, {"name": "梅菜肉餅飯", "cat": "蒸飯", "img": "img/item33.jpg"}, {"name": "溫泉蛋牛肉飯", "cat": "蒸飯", "img": "img/item34.jpg"}, {"name": "鳳爪排骨飯", "cat": "蒸飯", "img": "img/item35.jpg"}, {"name": "金湯酸菜魚片湯米線", "cat": "米線", "img": "img/item36.jpg"}, {"name": "金菇肥牛湯米線", "cat": "米線", "img": "img/item37.jpg"}, {"name": "厚冬菇湯米線", "cat": "米線", "img": "img/item38.jpg"}, {"name": "燒排骨湯米線", "cat": "米線", "img": "img/item39.jpg"}, {"name": "雞中翼湯米線", "cat": "米線", "img": "img/item40.jpg"}, {"name": "足料原盅燉湯", "cat": "湯品", "img": "img/item41.jpg"}, {"name": "手拍青瓜", "cat": "健康蔬菜", "img": "img/item42.jpg"}, {"name": "豉油新鮮時菜", "cat": "健康蔬菜", "img": "img/item43.jpg"}, {"name": "芒果布甸", "cat": "甜品", "img": "img/item44.jpg"}, {"name": "懷舊七彩啫喱", "cat": "甜品", "img": "img/item45.jpg"}]};
-const cart={};
+const WA="85295747436", TEL="95747436";
+const DATA={"cats": ["即蒸點心", "腸粉", "焗/煎/炸點心", "蒸飯", "米線", "湯品", "健康蔬菜", "甜品", "飲品"], "menu": [{"name": "點心拼盤 (皇)", "cat": "即蒸點心", "tier": "皇", "normal": 57, "tea": 57, "img": "img/item01.jpg"}, {"name": "豪隍蝦餃皇 (中)", "cat": "即蒸點心", "tier": "中", "normal": 31, "tea": 24, "img": "img/item02.jpg"}, {"name": "蝦仁燒賣王 (中)", "cat": "即蒸點心", "tier": "中", "normal": 31, "tea": 24, "img": "img/item03.jpg"}, {"name": "龍仔馬拉糕 (中)", "cat": "即蒸點心", "tier": "中", "normal": 31, "tea": 22, "img": "img/item04.jpg"}, {"name": "流沙奶皇包 (中)", "cat": "即蒸點心", "tier": "中", "normal": 31, "tea": 31, "img": "img/item05.jpg"}, {"name": "鮑魚冬菇棉花雞 (超)", "cat": "即蒸點心", "tier": "超", "normal": 43, "tea": 43, "img": "img/item06.jpg"}, {"name": "豪隍小籠包 (大)", "cat": "即蒸點心", "tier": "大", "normal": 35, "tea": 35, "img": "img/item07.jpg"}, {"name": "蝦餃拼粉果 (特)", "cat": "即蒸點心", "tier": "特", "normal": 41, "tea": 41, "img": "img/item08.jpg"}, {"name": "鮮蝦菜苗餃 (中)", "cat": "即蒸點心", "tier": "中", "normal": 31, "tea": 24, "img": "img/item09.jpg"}, {"name": "娥姐上素餃 (大)", "cat": "即蒸點心", "tier": "大", "normal": 35, "tea": 22, "img": "img/item10.jpg"}, {"name": "山竹牛肉球 (中)", "cat": "即蒸點心", "tier": "中", "normal": 31, "tea": 24, "img": "img/item11.jpg"}, {"name": "蜜汁叉燒包 (中)", "cat": "即蒸點心", "tier": "中", "normal": 31, "tea": 24, "img": "img/item12.jpg"}, {"name": "杞子濃湯鮮竹卷 (小)", "cat": "即蒸點心", "tier": "小", "normal": 29, "tea": 22, "img": "img/item13.jpg"}, {"name": "豉汁蒸排骨 (小)", "cat": "即蒸點心", "tier": "小", "normal": 29, "tea": 29, "img": "img/item14.jpg"}, {"name": "豉汁蒸鳳爪 (中)", "cat": "即蒸點心", "tier": "中", "normal": 31, "tea": 31, "img": "img/item15.jpg"}, {"name": "潮州蒸粉果 (小)", "cat": "即蒸點心", "tier": "小", "normal": 29, "tea": 22, "img": "img/item16.jpg"}, {"name": "荷葉珍珠雞 (頂)", "cat": "即蒸點心", "tier": "頂", "normal": 37, "tea": 26, "img": "img/item17.jpg"}, {"name": "豪隍素翅餃 (小)", "cat": "即蒸點心", "tier": "小", "normal": 29, "tea": 29, "img": "img/item18.jpg"}, {"name": "養顏紅棗糕 (小)", "cat": "即蒸點心", "tier": "小", "normal": 29, "tea": 20, "img": "img/item19.jpg"}, {"name": "五香金錢肚 (特)", "cat": "即蒸點心", "tier": "特", "normal": 41, "tea": 41, "img": "img/item20.jpg"}, {"name": "鮑汁炆鳳爪 (頂)", "cat": "即蒸點心", "tier": "頂", "normal": 37, "tea": 37, "img": "img/item21.png"}, {"name": "香茜牛肉腸 (中)", "cat": "腸粉", "tier": "中", "normal": 31, "tea": 22, "img": "img/item22.jpg"}, {"name": "蜜汁叉燒腸 (大)", "cat": "腸粉", "tier": "大", "normal": 35, "tea": 24, "img": "img/item23.jpg"}, {"name": "爽口滑蝦腸 (特)", "cat": "腸粉", "tier": "特", "normal": 41, "tea": 34, "img": "img/item24.jpg"}, {"name": "混醬齋腸 (中)", "cat": "腸粉", "tier": "中", "normal": 31, "tea": 20, "img": "img/item25.jpg"}, {"name": "脆皮銀蘿腸 (中)", "cat": "腸粉", "tier": "中", "normal": 31, "tea": 31, "img": "img/item26.jpg"}, {"name": "墨西哥叉燒包 (中)", "cat": "焗/煎/炸點心", "tier": "中", "normal": 31, "tea": 31, "img": "img/item27.jpg"}, {"name": "沙律雜果鮮蝦炸雲吞 (頂)", "cat": "焗/煎/炸點心", "tier": "頂", "normal": 37, "tea": 30, "img": "img/item28.jpg"}, {"name": "生煎菜肉包 (小)", "cat": "焗/煎/炸點心", "tier": "小", "normal": 29, "tea": 29, "img": "img/item29.jpg"}, {"name": "鮮蝦腐皮卷 (大)", "cat": "焗/煎/炸點心", "tier": "大", "normal": 35, "tea": 35, "img": "img/item30.jpg"}, {"name": "醬汁釀茄子拼尖椒 (頂)", "cat": "焗/煎/炸點心", "tier": "頂", "normal": 37, "tea": 37, "img": "img/item31.jpg"}, {"name": "五香鹹水角 (小)", "cat": "焗/煎/炸點心", "tier": "小", "normal": 29, "tea": 20, "img": "img/item32.jpg"}, {"name": "蓮藕煎鯪魚餅 (大)", "cat": "焗/煎/炸點心", "tier": "大", "normal": 35, "tea": 35, "img": "img/item33.jpg"}, {"name": "蒜蓉炸雞翼 (中)", "cat": "焗/煎/炸點心", "tier": "中", "normal": 31, "tea": 24, "img": "img/item34.jpg"}, {"name": "孜然炸雞翼 (特)", "cat": "焗/煎/炸點心", "tier": "特", "normal": 41, "tea": 32, "img": "img/item35.jpg"}, {"name": "生煎蘿蔔糕 (小)", "cat": "焗/煎/炸點心", "tier": "小", "normal": 29, "tea": 20, "img": "img/item36.jpg"}, {"name": "蒜蓉芝士鮮蝦長春卷 (特)", "cat": "焗/煎/炸點心", "tier": "特", "normal": 41, "tea": 41, "img": "img/item37.jpg"}, {"name": "豪隍蝦多士 (超)", "cat": "焗/煎/炸點心", "tier": "超", "normal": 43, "tea": 43, "img": "img/item38.png"}, {"name": "黑松露蝦多士 ($53)", "cat": "焗/煎/炸點心", "tier": "$53", "normal": 53, "tea": 53, "img": "img/item39.png"}, {"name": "啫啫XO醬蘿蔔糕 (特)", "cat": "焗/煎/炸點心", "tier": "特", "normal": 41, "tea": 41, "img": "img/item40.png"}, {"name": "鳳爪排骨飯 (特)", "cat": "蒸飯", "tier": "特", "normal": 41, "tea": 31, "img": "img/item41.jpg"}, {"name": "時令鮮姑章魚雞粒飯 (特)", "cat": "蒸飯", "tier": "特", "normal": 41, "tea": 31, "img": "img/item42.jpg"}, {"name": "梅菜肉餅飯 (特)", "cat": "蒸飯", "tier": "特", "normal": 41, "tea": 31, "img": "img/item43.jpg"}, {"name": "溫泉蛋牛肉飯 (特)", "cat": "蒸飯", "tier": "特", "normal": 41, "tea": 31, "img": "img/item44.jpg"}, {"name": "煎蛋 ($7)", "cat": "蒸飯", "tier": "$7", "normal": 7, "tea": 7, "img": "img/item45.jpg"}, {"name": "金湯酸菜魚片湯米線 (超)", "cat": "米線", "tier": "超", "normal": 43, "tea": 36, "img": "img/item46.jpg"}, {"name": "雞中翼湯米線 (超)", "cat": "米線", "tier": "超", "normal": 43, "tea": 43, "img": "img/item47.jpg"}, {"name": "厚冬菇湯米線 (超)", "cat": "米線", "tier": "超", "normal": 43, "tea": 43, "img": "img/item48.jpg"}, {"name": "蓮藕煎鯪魚餅湯米線 (超)", "cat": "米線", "tier": "超", "normal": 43, "tea": 34, "img": "img/item49.jpg"}, {"name": "燒排骨湯米線 (超)", "cat": "米線", "tier": "超", "normal": 43, "tea": 43, "img": "img/item50.jpg"}, {"name": "金菇肥牛湯米線 (超)", "cat": "米線", "tier": "超", "normal": 43, "tea": 43, "img": "img/item51.jpg"}, {"name": "足料原盅燉湯 (特)", "cat": "湯品", "tier": "特", "normal": 41, "tea": 41, "img": "img/item52.jpg"}, {"name": "豉油新鮮時菜 (中)", "cat": "健康蔬菜", "tier": "中", "normal": 31, "tea": 31, "img": "img/item53.jpg"}, {"name": "手拍青瓜 ($22)", "cat": "健康蔬菜", "tier": "$22", "normal": 22, "tea": 17, "img": "img/item54.jpg"}, {"name": "芒果布甸 ($22)", "cat": "甜品", "tier": "$22", "normal": 22, "tea": 12, "img": "img/item55.jpg"}, {"name": "懷舊七彩啫喱 ($22)", "cat": "甜品", "tier": "$22", "normal": 22, "tea": 14, "img": "img/item56.jpg"}, {"name": "豪隍冷泡烏龍 ($12)", "cat": "飲品", "tier": "$12", "normal": 12, "tea": 10, "img": "img/item57.jpg"}, {"name": "豪隍冷泡茉莉 ($12)", "cat": "飲品", "tier": "$12", "normal": 12, "tea": 10, "img": "img/item58.jpg"}, {"name": "可樂 ($14)", "cat": "飲品", "tier": "$14", "normal": 14, "tea": 12, "img": "img/item59.jpg"}, {"name": "無糖可樂 ($14)", "cat": "飲品", "tier": "$14", "normal": 14, "tea": 12, "img": "img/item60.jpg"}], "datemap": {"1/1/2026": "假期", "2/1/2026": "平日", "3/1/2026": "假期", "4/1/2026": "假期", "5/1/2026": "平日", "6/1/2026": "平日", "7/1/2026": "平日", "8/1/2026": "平日", "9/1/2026": "平日", "10/1/2026": "假期", "11/1/2026": "假期", "12/1/2026": "平日", "13/1/2026": "平日", "14/1/2026": "平日", "15/1/2026": "平日", "16/1/2026": "平日", "17/1/2026": "假期", "18/1/2026": "假期", "19/1/2026": "平日", "20/1/2026": "平日", "21/1/2026": "平日", "22/1/2026": "平日", "23/1/2026": "平日", "24/1/2026": "假期", "25/1/2026": "假期", "26/1/2026": "平日", "27/1/2026": "平日", "28/1/2026": "平日", "29/1/2026": "平日", "30/1/2026": "平日", "31/1/2026": "假期", "1/2/2026": "假期", "2/2/2026": "平日", "3/2/2026": "平日", "4/2/2026": "平日", "5/2/2026": "平日", "6/2/2026": "平日", "7/2/2026": "假期", "8/2/2026": "假期", "9/2/2026": "平日", "10/2/2026": "平日", "11/2/2026": "平日", "12/2/2026": "平日", "13/2/2026": "平日", "14/2/2026": "假期", "15/2/2026": "假期", "16/2/2026": "平日", "17/2/2026": "假期", "18/2/2026": "假期", "19/2/2026": "假期", "20/2/2026": "平日", "21/2/2026": "假期", "22/2/2026": "假期", "23/2/2026": "平日", "24/2/2026": "平日", "25/2/2026": "平日", "26/2/2026": "平日", "27/2/2026": "平日", "28/2/2026": "假期", "1/3/2026": "假期", "2/3/2026": "平日", "3/3/2026": "平日", "4/3/2026": "平日", "5/3/2026": "平日", "6/3/2026": "平日", "7/3/2026": "假期", "8/3/2026": "假期", "9/3/2026": "平日", "10/3/2026": "平日", "11/3/2026": "平日", "12/3/2026": "平日", "13/3/2026": "平日", "14/3/2026": "假期", "15/3/2026": "假期", "16/3/2026": "平日", "17/3/2026": "平日", "18/3/2026": "平日", "19/3/2026": "平日", "20/3/2026": "平日", "21/3/2026": "假期", "22/3/2026": "假期", "23/3/2026": "平日", "24/3/2026": "平日", "25/3/2026": "平日", "26/3/2026": "平日", "27/3/2026": "平日", "28/3/2026": "假期", "29/3/2026": "假期", "30/3/2026": "平日", "31/3/2026": "平日", "1/4/2026": "平日", "2/4/2026": "平日", "3/4/2026": "假期", "4/4/2026": "假期", "5/4/2026": "假期", "6/4/2026": "假期", "7/4/2026": "假期", "8/4/2026": "平日", "9/4/2026": "平日", "10/4/2026": "平日", "11/4/2026": "假期", "12/4/2026": "假期", "13/4/2026": "平日", "14/4/2026": "平日", "15/4/2026": "平日", "16/4/2026": "平日", "17/4/2026": "平日", "18/4/2026": "假期", "19/4/2026": "假期", "20/4/2026": "平日", "21/4/2026": "平日", "22/4/2026": "平日", "23/4/2026": "平日", "24/4/2026": "平日", "25/4/2026": "假期", "26/4/2026": "假期", "27/4/2026": "平日", "28/4/2026": "平日", "29/4/2026": "平日", "30/4/2026": "平日", "1/5/2026": "假期", "2/5/2026": "假期", "3/5/2026": "假期", "4/5/2026": "平日", "5/5/2026": "平日", "6/5/2026": "平日", "7/5/2026": "平日", "8/5/2026": "平日", "9/5/2026": "假期", "10/5/2026": "假期", "11/5/2026": "平日", "12/5/2026": "平日", "13/5/2026": "平日", "14/5/2026": "平日", "15/5/2026": "平日", "16/5/2026": "假期", "17/5/2026": "假期", "18/5/2026": "平日", "19/5/2026": "平日", "20/5/2026": "平日", "21/5/2026": "平日", "22/5/2026": "平日", "23/5/2026": "假期", "24/5/2026": "假期", "25/5/2026": "假期", "26/5/2026": "平日", "27/5/2026": "平日", "28/5/2026": "平日", "29/5/2026": "平日", "30/5/2026": "假期", "31/5/2026": "假期", "1/6/2026": "平日", "2/6/2026": "平日", "3/6/2026": "平日", "4/6/2026": "平日", "5/6/2026": "平日", "6/6/2026": "假期", "7/6/2026": "假期", "8/6/2026": "平日", "9/6/2026": "平日", "10/6/2026": "平日", "11/6/2026": "平日", "12/6/2026": "平日", "13/6/2026": "假期", "14/6/2026": "假期", "15/6/2026": "平日", "16/6/2026": "平日", "17/6/2026": "平日", "18/6/2026": "平日", "19/6/2026": "假期", "20/6/2026": "假期", "21/6/2026": "假期", "22/6/2026": "平日", "23/6/2026": "平日", "24/6/2026": "平日", "25/6/2026": "平日", "26/6/2026": "平日", "27/6/2026": "假期", "28/6/2026": "假期", "29/6/2026": "平日", "30/6/2026": "平日", "1/7/2026": "假期", "2/7/2026": "平日", "3/7/2026": "平日", "4/7/2026": "假期", "5/7/2026": "假期", "6/7/2026": "平日", "7/7/2026": "平日", "8/7/2026": "平日", "9/7/2026": "平日", "10/7/2026": "平日", "11/7/2026": "假期", "12/7/2026": "假期", "13/7/2026": "平日", "14/7/2026": "平日", "15/7/2026": "平日", "16/7/2026": "平日", "17/7/2026": "平日", "18/7/2026": "假期", "19/7/2026": "假期", "20/7/2026": "平日", "21/7/2026": "平日", "22/7/2026": "平日", "23/7/2026": "平日", "24/7/2026": "平日", "25/7/2026": "假期", "26/7/2026": "假期", "27/7/2026": "平日", "28/7/2026": "平日", "29/7/2026": "平日", "30/7/2026": "平日", "31/7/2026": "平日", "1/8/2026": "假期", "2/8/2026": "假期", "3/8/2026": "平日", "4/8/2026": "平日", "5/8/2026": "平日", "6/8/2026": "平日", "7/8/2026": "平日", "8/8/2026": "假期", "9/8/2026": "假期", "10/8/2026": "平日", "11/8/2026": "平日", "12/8/2026": "平日", "13/8/2026": "平日", "14/8/2026": "平日", "15/8/2026": "假期", "16/8/2026": "假期", "17/8/2026": "平日", "18/8/2026": "平日", "19/8/2026": "平日", "20/8/2026": "平日", "21/8/2026": "平日", "22/8/2026": "假期", "23/8/2026": "假期", "24/8/2026": "平日", "25/8/2026": "平日", "26/8/2026": "平日", "27/8/2026": "平日", "28/8/2026": "平日", "29/8/2026": "假期", "30/8/2026": "假期", "31/8/2026": "平日", "1/9/2026": "平日", "2/9/2026": "平日", "3/9/2026": "平日", "4/9/2026": "平日", "5/9/2026": "假期", "6/9/2026": "假期", "7/9/2026": "平日", "8/9/2026": "平日", "9/9/2026": "平日", "10/9/2026": "平日", "11/9/2026": "平日", "12/9/2026": "假期", "13/9/2026": "假期", "14/9/2026": "平日", "15/9/2026": "平日", "16/9/2026": "平日", "17/9/2026": "平日", "18/9/2026": "平日", "19/9/2026": "假期", "20/9/2026": "假期", "21/9/2026": "平日", "22/9/2026": "平日", "23/9/2026": "平日", "24/9/2026": "平日", "25/9/2026": "平日", "26/9/2026": "假期", "27/9/2026": "假期", "28/9/2026": "平日", "29/9/2026": "平日", "30/9/2026": "平日", "1/10/2026": "假期", "2/10/2026": "平日", "3/10/2026": "假期", "4/10/2026": "假期", "5/10/2026": "平日", "6/10/2026": "平日", "7/10/2026": "平日", "8/10/2026": "平日", "9/10/2026": "平日", "10/10/2026": "假期", "11/10/2026": "假期", "12/10/2026": "平日", "13/10/2026": "平日", "14/10/2026": "平日", "15/10/2026": "平日", "16/10/2026": "平日", "17/10/2026": "假期", "18/10/2026": "假期", "19/10/2026": "假期", "20/10/2026": "平日", "21/10/2026": "平日", "22/10/2026": "平日", "23/10/2026": "平日", "24/10/2026": "假期", "25/10/2026": "假期", "26/10/2026": "平日", "27/10/2026": "平日", "28/10/2026": "平日", "29/10/2026": "平日", "30/10/2026": "平日", "31/10/2026": "假期", "1/11/2026": "假期", "2/11/2026": "平日", "3/11/2026": "平日", "4/11/2026": "平日", "5/11/2026": "平日", "6/11/2026": "平日", "7/11/2026": "假期", "8/11/2026": "假期", "9/11/2026": "平日", "10/11/2026": "平日", "11/11/2026": "平日", "12/11/2026": "平日", "13/11/2026": "平日", "14/11/2026": "假期", "15/11/2026": "假期", "16/11/2026": "平日", "17/11/2026": "平日", "18/11/2026": "平日", "19/11/2026": "平日", "20/11/2026": "平日", "21/11/2026": "假期", "22/11/2026": "假期", "23/11/2026": "平日", "24/11/2026": "平日", "25/11/2026": "平日", "26/11/2026": "平日", "27/11/2026": "平日", "28/11/2026": "假期", "29/11/2026": "假期", "30/11/2026": "平日", "1/12/2026": "平日", "2/12/2026": "平日", "3/12/2026": "平日", "4/12/2026": "平日", "5/12/2026": "假期", "6/12/2026": "假期", "7/12/2026": "平日", "8/12/2026": "平日", "9/12/2026": "平日", "10/12/2026": "平日", "11/12/2026": "平日", "12/12/2026": "假期", "13/12/2026": "假期", "14/12/2026": "平日", "15/12/2026": "平日", "16/12/2026": "平日", "17/12/2026": "平日", "18/12/2026": "平日", "19/12/2026": "假期", "20/12/2026": "假期", "21/12/2026": "平日", "22/12/2026": "平日", "23/12/2026": "平日", "24/12/2026": "平日", "25/12/2026": "假期", "26/12/2026": "假期", "27/12/2026": "假期", "28/12/2026": "平日", "29/12/2026": "平日", "30/12/2026": "平日", "31/12/2026": "平日", "1/1/2027": "平日", "2/1/2027": "假期", "3/1/2027": "假期", "4/1/2027": "平日", "5/1/2027": "平日", "6/1/2027": "平日", "7/1/2027": "平日", "8/1/2027": "平日", "9/1/2027": "假期", "10/1/2027": "假期", "11/1/2027": "平日", "12/1/2027": "平日", "13/1/2027": "平日", "14/1/2027": "平日", "15/1/2027": "平日", "16/1/2027": "假期", "17/1/2027": "假期", "18/1/2027": "平日", "19/1/2027": "平日", "20/1/2027": "平日", "21/1/2027": "平日", "22/1/2027": "平日", "23/1/2027": "假期", "24/1/2027": "假期", "25/1/2027": "平日", "26/1/2027": "平日", "27/1/2027": "平日", "28/1/2027": "平日", "29/1/2027": "平日", "30/1/2027": "假期", "31/1/2027": "假期", "1/2/2027": "平日", "2/2/2027": "平日", "3/2/2027": "平日"}};
+const DATEMAP=DATA.datemap;
+const cart={};               // name -> qty
+const HEADER=60;
+let lockSpy=false;
+
+// 茶市判斷（香港時間）
+function nowHK(){ return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Hong_Kong'})); }
+function isTeaTime(){
+  const n=nowHK();
+  const key=n.getDate()+"/"+(n.getMonth()+1)+"/"+n.getFullYear();
+  if(DATEMAP[key]!=="平日") return false;
+  const m=n.getHours()*60+n.getMinutes();
+  return (m>=8*60 && m<=10*60+30) || (m>=14*60 && m<=17*60);
+}
+const TEA=isTeaTime();
+function unitPrice(it){ return (TEA && it.tea!=null) ? it.tea : it.normal; }
+
 const catsEl=document.getElementById('cats');
 const itemsEl=document.getElementById('items');
 const countEl=document.getElementById('count');
+const subEl=document.getElementById('subtotal');
 const sendBtn=document.getElementById('sendbtn');
 const toastEl=document.getElementById('toast');
-const HEADER=52;                       // 固定 header 高度
-let lockSpy=false;                      // 點分類捲動時暫停 scroll-spy
+
+if(TEA){ document.body.classList.add('tea'); document.getElementById('teabar').classList.add('show'); }
 
 // 左側分類
 DATA.cats.forEach((c,i)=>{
   const d=document.createElement('div');
   d.className='cat'+(i===0?' active':'');
   d.textContent=c;
-  d.onclick=()=>{
-    const s=document.getElementById('sec-'+i);
-    const y=s.getBoundingClientRect().top + window.pageYOffset - HEADER;
-    lockSpy=true; setActive(i);          // 鎖定高亮，直到用戶自己滑動才交還
-    window.scrollTo({top:y, behavior:'smooth'});
-  };
+  d.onclick=()=>{ const s=document.getElementById('sec-'+i);
+    const y=s.getBoundingClientRect().top+window.pageYOffset-HEADER-(TEA?32:0);
+    lockSpy=true; setActive(i); window.scrollTo({top:y,behavior:'smooth'}); };
   catsEl.appendChild(d);
 });
 
 // 右側點心
 DATA.cats.forEach((c,i)=>{
-  const h=document.createElement('div');
-  h.className='sec-h'; h.id='sec-'+i; h.textContent=c;
+  const h=document.createElement('div'); h.className='sec-h'; h.id='sec-'+i; h.textContent=c;
   itemsEl.appendChild(h);
   DATA.menu.filter(m=>m.cat===c).forEach(m=>{
+    const up=unitPrice(m);
+    const wasTea = TEA && m.tea!=null && m.tea<m.normal;
     const card=document.createElement('div'); card.className='card';
     card.innerHTML=
       '<img loading="lazy" src="'+m.img+'" alt="">'+
-      '<div class="nm">'+m.name+'</div>'+
-      '<div class="stp">'+
-        '<button class="minus" aria-label="減">−</button>'+
-        '<span class="qty zero">0</span>'+
-        '<button class="plus" aria-label="加">+</button>'+
-      '</div>';
-    const minus=card.querySelector('.minus');
-    const plus=card.querySelector('.plus');
-    const qty=card.querySelector('.qty');
+      '<div class="info"><div class="nm">'+m.name+'</div>'+
+      '<div class="pr">$'+up+(wasTea?'<span class="was">$'+m.normal+'</span>':'')+'</div></div>'+
+      '<div class="stp"><button class="minus" aria-label="減">−</button>'+
+      '<span class="qty zero">0</span><button class="plus" aria-label="加">+</button></div>';
+    const minus=card.querySelector('.minus'), plus=card.querySelector('.plus'), qty=card.querySelector('.qty');
     function render(){
       const n=cart[m.name]||0;
-      qty.textContent=n;
-      qty.classList.toggle('zero',n===0);
+      qty.textContent=n; qty.classList.toggle('zero',n===0);
       minus.style.visibility=n>0?'visible':'hidden';
-      card.classList.toggle('on',n>0);
-      updateCart();
+      card.classList.toggle('on',n>0); updateCart();
     }
-    plus.onclick=()=>{cart[m.name]=(cart[m.name]||0)+1;render();};
-    minus.onclick=()=>{cart[m.name]=Math.max(0,(cart[m.name]||0)-1);if(!cart[m.name])delete cart[m.name];render();};
+    plus.onclick=()=>{ const n=cart[m.name]||0;
+      if(n>=10){ toast("每款最多 10 件"); return; }
+      cart[m.name]=n+1; render(); };
+    minus.onclick=()=>{ cart[m.name]=Math.max(0,(cart[m.name]||0)-1);
+      if(!cart[m.name]) delete cart[m.name]; render(); };
     itemsEl.appendChild(card);
   });
 });
 
-// 捲動高亮分類（整頁捲動）
+// scroll-spy
 const secs=DATA.cats.map((c,i)=>document.getElementById('sec-'+i));
-function setActive(idx){
-  [...catsEl.children].forEach((el,i)=>el.classList.toggle('active',i===idx));
-}
+function setActive(idx){ [...catsEl.children].forEach((el,i)=>el.classList.toggle('active',i===idx)); }
 function onScroll(){
   if(lockSpy) return;
-  // 捲到底：高亮最後一個分類（頁尾短分類靠這個）
-  if(window.innerHeight + window.pageYOffset >= document.body.scrollHeight - 2){
-    setActive(secs.length-1); return;
-  }
-  let active=0;
-  secs.forEach((s,i)=>{ if(s.getBoundingClientRect().top - HEADER - 4 <= 0) active=i; });
-  setActive(active);
+  if(window.innerHeight+window.pageYOffset>=document.body.scrollHeight-2){ setActive(secs.length-1); return; }
+  let a=0; const off=HEADER+(TEA?32:0)+6;
+  secs.forEach((s,i)=>{ if(s.getBoundingClientRect().top-off<=0) a=i; });
+  setActive(a);
 }
-window.addEventListener('scroll', onScroll, {passive:true});
-// 用戶一旦自己滑動，就把高亮控制權交回 scroll-spy
+window.addEventListener('scroll',onScroll,{passive:true});
 ['wheel','touchmove'].forEach(ev=>window.addEventListener(ev,()=>{lockSpy=false;},{passive:true}));
 
-function updateCart(){
-  let total=0; for(const k in cart) total+=cart[k];
-  countEl.textContent=total;
-  sendBtn.disabled=total===0;
+function cartList(){  // [{name,qty,unit,line}]
+  const out=[];
+  DATA.cats.forEach(c=>DATA.menu.filter(m=>m.cat===c && cart[m.name]>0)
+    .forEach(m=>out.push({cat:c,name:m.name,qty:cart[m.name],unit:unitPrice(m),line:cart[m.name]*unitPrice(m)})));
+  return out;
 }
+function updateCart(){
+  let tot=0,price=0;
+  for(const it of cartList()){ tot+=it.qty; price+=it.line; }
+  countEl.textContent=tot; subEl.textContent="合計 $"+price;
+  sendBtn.disabled=tot===0;
+}
+function toast(t){ toastEl.textContent=t; toastEl.classList.add('show');
+  setTimeout(()=>toastEl.classList.remove('show'),1700); }
+
+// 預覽 modal
+const mask=document.getElementById('mask'), pvbody=document.getElementById('pvbody');
+function openPreview(){
+  const list=cartList(); if(!list.length){ toast("請先選擇點心"); return; }
+  let tot=0,price=0,html="",lastCat="";
+  list.forEach(it=>{
+    if(it.cat!==lastCat){ html+='<div class="pvcat">'+it.cat+'</div>'; lastCat=it.cat; }
+    html+='<div class="pvrow"><span>'+it.name+'</span><span class="q">×'+it.qty+'</span><span class="lp">$'+it.line+'</span></div>';
+    tot+=it.qty; price+=it.line;
+  });
+  html+='<div class="pvtotal"><span>合計 '+tot+' 件</span><span>約 $'+price+'</span></div>';
+  html+='<div class="notes">'+
+    '• 下單後將會收到確認，如 <b>5 分鐘內未收到</b>，請致電餐廳 '+TEL.replace(/(\d{4})(\d{4})/,'$1 $2')+'。<br>'+
+    '• 價錢只為參考，<b>確實價錢以餐廳計算為準</b>。<br>'+
+    '• 落單確認後 <b>20 至 25 分鐘</b>可取餐。'+
+    (TEA?'<br>• 現為茶市時段，已套用特價。':'')+'</div>';
+  pvbody.innerHTML=html; mask.classList.add('show');
+}
+document.getElementById('btnBack').onclick=()=>mask.classList.remove('show');
+mask.onclick=(e)=>{ if(e.target===mask) mask.classList.remove('show'); };
+sendBtn.onclick=openPreview;
 
 function buildMsg(){
-  let lines=["🥟 豪隍點心工房 外賣訂單","━━━━━━━━━━"];
-  let total=0;
-  DATA.cats.forEach(c=>{
-    const got=DATA.menu.filter(m=>m.cat===c && cart[m.name]>0);
-    if(got.length){
-      lines.push("【"+c+"】");
-      got.forEach(m=>{lines.push("・"+m.name+" ×"+cart[m.name]); total+=cart[m.name];});
-    }
+  const list=cartList(); let tot=0,price=0;
+  let lines=["🥟 豪隍點心工房（將軍澳）外賣訂單","━━━━━━━━━━"];
+  let lastCat="";
+  list.forEach(it=>{
+    if(it.cat!==lastCat){ lines.push("【"+it.cat+"】"); lastCat=it.cat; }
+    lines.push("・"+it.name+" ×"+it.qty+"　$"+it.line);
+    tot+=it.qty; price+=it.line;
   });
-  lines.push("━━━━━━━━━━","合計 "+total+" 件");
+  lines.push("━━━━━━━━━━","合計 "+tot+" 件　約 $"+price);
+  if(TEA) lines.push("（茶市特價時段）");
+  lines.push("（價錢只供參考，確實以餐廳為準）");
   return lines.join("\n");
 }
-
-function toast(t){toastEl.textContent=t;toastEl.classList.add('show');
-  setTimeout(()=>toastEl.classList.remove('show'),1800);}
-
-sendBtn.onclick=()=>{
-  let total=0; for(const k in cart) total+=cart[k];
-  if(!total){toast("請先選擇點心數量");return;}
-  const url="https://wa.me/"+WA+"?text="+encodeURIComponent(buildMsg());
-  window.location.href=url;
+document.getElementById('btnGo').onclick=()=>{
+  window.location.href="https://wa.me/"+WA+"?text="+encodeURIComponent(buildMsg());
 };
 </script>
 </body>
