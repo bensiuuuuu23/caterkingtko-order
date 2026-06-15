@@ -90,7 +90,7 @@
   <nav class="cats" id="cats"></nav>
   <main class="items" id="items"></main>
   <div class="cartbar">
-    <div class="cartinfo">🛒 已選 <b id="count">0</b> 件<span class="sub" id="subtotal">合計 $0</span></div>
+    <div class="cartinfo">🛒 已選 <b id="count">0</b> 件</div>
     <button class="sendbtn" id="sendbtn" disabled>送出訂單</button>
   </div>
   <div class="toast" id="toast"></div>
@@ -130,7 +130,6 @@ function unitPrice(it){ return (TEA && it.tea!=null) ? it.tea : it.normal; }
 const catsEl=document.getElementById('cats');
 const itemsEl=document.getElementById('items');
 const countEl=document.getElementById('count');
-const subEl=document.getElementById('subtotal');
 const sendBtn=document.getElementById('sendbtn');
 const toastEl=document.getElementById('toast');
 
@@ -157,8 +156,7 @@ DATA.cats.forEach((c,i)=>{
     const card=document.createElement('div'); card.className='card';
     card.innerHTML=
       '<img loading="lazy" src="'+m.img+'" alt="">'+
-      '<div class="info"><div class="nm">'+m.name+'</div>'+
-      '<div class="pr">$'+up+(wasTea?'<span class="was">$'+m.normal+'</span>':'')+'</div></div>'+
+      '<div class="info"><div class="nm">'+m.name+'</div></div>'+
       '<div class="stp"><button class="minus" aria-label="減">−</button>'+
       '<span class="qty zero">0</span><button class="plus" aria-label="加">+</button></div>';
     const minus=card.querySelector('.minus'), plus=card.querySelector('.plus'), qty=card.querySelector('.qty');
@@ -197,9 +195,9 @@ function cartList(){  // [{name,qty,unit,line}]
   return out;
 }
 function updateCart(){
-  let tot=0,price=0;
-  for(const it of cartList()){ tot+=it.qty; price+=it.line; }
-  countEl.textContent=tot; subEl.textContent="合計 $"+price;
+  let tot=0;
+  for(const it of cartList()){ tot+=it.qty; }
+  countEl.textContent=tot;
   sendBtn.disabled=tot===0;
 }
 function toast(t){ toastEl.textContent=t; toastEl.classList.add('show');
